@@ -4,8 +4,7 @@ Wie Google Drive / NextCloud Storage
 
 ## Quellsysteme
 
-- (Nutzer Dateien)
-- Zugangs Beschränkungen (Nutzer Definiert)
+- Nutzer Dateien Zuordnung + Zugangs Beschränkungen (Nutzer Definiert)
 - Abo Daten, Generelle Kundendaten
 - Server Performance Metriken
 - Nutzer Dateien Access Logs
