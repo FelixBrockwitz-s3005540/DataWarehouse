@@ -56,6 +56,10 @@ erDiagram
     }
     
     %% Service DB
+    Instance {
+        ID int PK
+    }
+    
     File {
         ID int PK
         InstanceID string
@@ -134,6 +138,7 @@ erDiagram
     Abo }o--|| PaymentDetails : uses
     PaymentDetails |o--o{ PaymentLogRow : logs
     %% Service DB
+    Instance ||--o{ File : stored-on
     Accounts ||--o{ File : owns
     File }o--o{ FileGroup : belongs-to
     Accounts ||--o{ AccountPermission : has-permission
@@ -142,6 +147,7 @@ erDiagram
     IPPermission |o--o{ FileGroup : for-files
     Accounts ||--o{ IPPermission : for-storage
     %% Logs DB
+    Instance ||--o{ PerformanceLogRow : has-logs
     Accounts ||--o{ AccessLogRow : by-user
     File ||--o{ AccessLogRow : logs-access
 ```
@@ -169,6 +175,8 @@ PaymentDetails(ID, Methode, Betrag, Währung, Status, Transaktionsreferenz)
 PaymentLogRow(TimeStamp, AboID, PaymentDetailsID, Betrag, War-Auto-Verlängerung, BestätigungsEmailID)
 
 ## Service DB
+
+Instance(ID)
 
 ### Datei zu Nutzer ID
 
