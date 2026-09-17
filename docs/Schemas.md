@@ -31,7 +31,7 @@ erDiagram
     Abo {
         ID uuid PK
         AccountID uuid FK
-        Typ string
+        Plan string
         Start datetime
         Ende datetime
         Auto-Verlängerung bool
@@ -115,7 +115,7 @@ erDiagram
 
     %% Logs DB
     AccessLogRow {
-        TimeStamp int PK
+        TimeStamp datetime PK
         AccountID uuid FK
         IPv4 string
         IPv6 string
@@ -180,7 +180,7 @@ Password(AccountID, Hash, Salt)
 
 Hier werden Informationen zu den Abo des Kontoinhabers gespeichert. Mit einer eigenen ID als Primarschlüssel und der Account ID und PaymentDetailsID als Fremdschlüssel. Die PaymentDetailsID wird nur in dem Fall einer Autoverlängerung eingesetzt.
 
-Abo(ID, AccountID, Typ, Start, Ende, Auto-Verlängerung, PaymentDetailsID)
+Abo(ID, AccountID, Plan, Start, Ende, Auto-Verlängerung, PaymentDetailsID)
 
 ### Payment Details
 
