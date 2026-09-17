@@ -1,6 +1,8 @@
 -- accounts_db.sql
--- Creates tables for the Accounts DB
--- Can be run with: psql -U datawarehouse_user -d accounts_db -f src/definitions/accounts_db.sql
+-- Creates tables for the accounts schema
+-- Can be run with: psql -U datawarehouse_user -d datawarehouse -f src/definitions/accounts_db.sql
+
+SET search_path TO accounts, public;
 
 BEGIN;
 

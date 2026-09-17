@@ -1,6 +1,8 @@
 -- logs_db.sql
--- Creates tables for the Logs DB
--- Can be run with: psql -U datawarehouse_user -d logs_db -f src/definitions/logs_db.sql
+-- Creates tables for the logs schema
+-- Can be run with: psql -U datawarehouse_user -d datawarehouse -f src/definitions/logs_db.sql
+
+SET search_path TO logs, service, accounts, public;
 
 BEGIN;
 

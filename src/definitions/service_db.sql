@@ -1,6 +1,8 @@
 -- service_db.sql
--- Creates tables for the Service DB
--- Can be run with: psql -U datawarehouse_user -d service_db -f src/definitions/service_db.sql
+-- Creates tables for the service schema
+-- Can be run with: psql -U datawarehouse_user -d datawarehouse -f src/definitions/service_db.sql
+
+SET search_path TO service, accounts, public;
 
 BEGIN;
 
