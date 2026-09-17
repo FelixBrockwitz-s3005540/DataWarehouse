@@ -1,0 +1,16 @@
+
+- Anzahl Nutzer
+- Größe Speicherplatz
+- Dauer der Nutzung (monatlich, jährlich)
+- Privatperson / Unternehmen / Behörde
+- MS Office in Kooperationsmodus
+
+Freeversion - 500 MB, 1 Nutzer, unbegrenzt, Privatperson: 0 €
+Trialversion - 3 GB, 1 Nutzer, 1 Monat, Privatperson: 0 €
+Standard Private - 10 GB, 1 Nutzer, 1 Monat, Privatperson: 10 € pro Monat
+Standard Group - 50 GB, 5 Nutzer, 1 Jahr, Privatperson: 30 € pro Monat
+Premium - 100 GB, 10 Nutzer, 1 Jahr, Privatperson, MS Office: 50 € pro Monat
+Standard Enterprise - 10 TB, 50 Nutzer, 1 Jahr, Unternehmen, MS Office: 1000 € pro Monat
+Premium Enterprise - 30 TB, 100 Nutzer, 3 Jahre, Unternehmen, MS Office: 2000 € pro Monat
+Standard Authority - 10 TB, 50 Nutzer, 1 Jahr, Unternehmen, MS Office: 800 € pro Monat
+Premium Authority - 30 TB, 100 Nutzer, 3 Jahre, Unternehmen, MS Office: 1600 € pro Monat

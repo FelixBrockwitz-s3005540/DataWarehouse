@@ -1,6 +1,8 @@
 # Schemas
 
-## ER Diagram
+## ER Diagramme
+
+![Drawio ER Diagram](ERM.drawio.png)
 
 ```mermaid
 erDiagram

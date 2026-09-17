@@ -6,6 +6,9 @@ SET search_path TO accounts, public;
 
 BEGIN;
 
+-- Enum type for subscription plans (see @docs/Lizenzmodelle.txt)
+CREATE TYPE plan_type AS ENUM ('Freeversion', 'Trialversion', 'Standard Private', 'Standard Group', 'Premium', 'Standard Enterprise', 'Premium Enterprise', 'Standard Authority', 'Premium Authority');
+
 CREATE TABLE accounts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_name VARCHAR(255) UNIQUE NOT NULL,
@@ -41,7 +44,7 @@ CREATE TABLE payment_details (
 CREATE TABLE abo (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-    plan VARCHAR(100) NOT NULL CHECK (TRUE), -- TODO limit plan choice
+    plan plan_type NOT NULL,
     start_date TIMESTAMP NOT NULL,
     end_date TIMESTAMP NOT NULL,
     auto_renew BOOLEAN NOT NULL DEFAULT FALSE,
