@@ -6,7 +6,8 @@
 erDiagram
     %% Accounts DB
     Accounts {
-        ID int PK
+        ID uuid PK
+        Benutzername string
         Vorname string
         Nachname string
         Email string
@@ -22,23 +23,23 @@ erDiagram
     }
     
     Password {
-        AccountID int PK
+        AccountID uuid PK
         Hash bytes
         Salt bytes
     }
     
     Abo {
-        ID int PK
-        AccountID int FK
+        ID uuid PK
+        AccountID uuid FK
         Typ string
         Start datetime
         Ende datetime
         Auto-Verlängerung bool
-        PaymentDetailsID int FK
+        PaymentDetailsID uuid FK
     }
     
     PaymentDetails {
-        ID int PK
+        ID uuid PK
         Methode string
         Betrag decimal
         Währung string
@@ -48,8 +49,8 @@ erDiagram
     
     PaymentLogRow {
         TimeStamp datetime PK
-        AboID int FK,PK
-        PaymentDetailsID int FK
+        AboID uuid FK, PK
+        PaymentDetailsID uuid FK
         Betrag decimal
         War-Auto-Verlängerung bool
         BestätigungsEmailID string
@@ -57,13 +58,21 @@ erDiagram
     
     %% Service DB
     Instance {
-        ID int PK
+        ID string PK
+        Region string
+        SystemVersion string
+        CPU string
+        MaxRamGB float
+        SystemPartitionGB float
+        FilesPartitionTB float
+        MaxUpload float
+        MaxDownload float
     }
 
     File {
-        ID int PK
+        ID uuid PK
         InstanceID string
-        OwnerAccountID int FK
+        OwnerAccountID uuid FK
         FileName string
         FilePath string
         Size int
@@ -75,12 +84,13 @@ erDiagram
     }
     
     IPPermission {
-        ID int PK
-        TargetID int FK
+        ID uuid PK
+        TargetID uuid FK
         Read string
         Write string
         Create string
         Delete string
+        Priority int
         IPv4 IPv4
         MaskV4 int
         IPv6 IPv6
@@ -88,9 +98,9 @@ erDiagram
     }
     
     AccountPermission {
-        ID int PK
-        TargetID int FK
-        AccountID int FK
+        ID uuid PK
+        TargetID uuid FK
+        AccountID uuid FK
         Read bool
         Write bool
         Create bool
@@ -98,30 +108,28 @@ erDiagram
     }
     
     FileGroup {
-        RelationID int PK
-        FileID int FK
+        RelationID uuid PK
+        FileID uuid FK
         GroupName string
     }
 
     %% Logs DB
     AccessLogRow {
         TimeStamp int PK
-        AccountID int FK
+        AccountID uuid FK
         IPv4 string
         IPv6 string
-        FileID int FK,PK
+        FileID uuid FK, PK
         Operation string
     }
 
     PerformanceLogRow {
         TimeStamp datetime PK
         InstanceID string PK
-        Region string
         Status string
-        SystemVersion string
         CPUPercent float
-        RamGB int
-        SystemStorageGB int
+        RamGB float
+        SystemStorageGB float
         FileStorageTB float
         NetworkUpload float
         NetworkDownload float
@@ -154,13 +162,13 @@ erDiagram
 
 ## Accounts DB
 
-Unter der Accounts Datenbank werden die Informationen zu dem Nutzer, dessen verschlüsseltes Passwort, dessen Abo und entsprechende Zahlungsmethoden gespeichert. 
+Unter der Accounts Datenbank werden die Informationen zu dem Nutzer, dessen verschlüsseltes Passwort, dessen Abo und entsprechende Zahlungsmethoden gespeichert.
 
 ### PII zu Nutzer ID
 
 Hier werden alle persöhnlichen Informationen des Kontoinhabers. Mit einem Primärschlüssel als ID, es wird auch festgelegt welches Abbo der Benutzer hat und welche AGBVersion hinterlegt ist. TrialGenutzt ist ob der Nutzer ein Probeabo verwendet hat oder nicht.
 
-Accounts(ID, Vorname, Nachname, Email, Telefon, Land, Stadt, PLZ, Straße, Hausnummer, Hausnummrezusatz, TrialGenutzt, AGBVersion)
+Accounts(ID, Benutzername, Vorname, Nachname, Email, Telefon, Land, Stadt, PLZ, Straße, Hausnummer, Hausnummrezusatz, TrialGenutzt, AGBVersion)
 
 ### Password / Auth
 
@@ -176,7 +184,7 @@ Abo(ID, AccountID, Typ, Start, Ende, Auto-Verlängerung, PaymentDetailsID)
 
 ### Payment Details
 
-Hier sind die Informationen zu den Zahlungsmethoden gespeichert. Es werden Zahlungsmethode den Betrag und die Währung gespeichert und die Transaktionsreferenz ist eine externe angabe von der Bank. 
+Hier sind die Informationen zu den Zahlungsmethoden gespeichert. Es werden Zahlungsmethode den Betrag und die Währung gespeichert und die Transaktionsreferenz ist eine externe angabe von der Bank.
 
 PaymentDetails(ID, Methode, Betrag, Währung, Status, Transaktionsreferenz)
 
@@ -188,13 +196,14 @@ PaymentLogRow(TimeStamp, AboID, PaymentDetailsID, Betrag, War-Auto-Verlängerung
 
 ## Service DB
 
-In der Service Datenbank werden die Dateien zum Nutzer und die entsprechenden Berechtigungen gespeichert. 
+In der Service Datenbank werden die Dateien zum Nutzer und die entsprechenden Berechtigungen gespeichert.
 
-### Instance 
+### Instance
 
-Die Instanze ist eine ID für den Server welcher gerade dem Nutzer seine Daten zur verfügung stellt.
+Die Instanzen der Server welcher gerade dem Nutzer seine Daten zur Verfügung stellt.
+Der Standort, die Hardware und die Software, mit dem der Server ausgerüstet ist, werden gespeichert.
 
-Instance(ID)
+Instance(ID, Region, SystemVersion, CPU, MaxRamGB, SystemPartitionGB, FilesPartitionTB, MaxUpload, MaxDownload)
 
 ### Datei zu Nutzer ID
 
@@ -204,9 +213,9 @@ File(ID, InstanceID, OwnerAccountID, FileName, FilePath, Size, Created, Modified
 
 ### Datei Berechtigungen
 
-In Datei Berechtigungen werden drei Tabellen hinterlegt, die Berechtigungen welche einer adresse und dessen Netzwerk zugeteilt sind in der IPPermission, den berechtigungen welche einem Account zugeteilt sind in der AccountPermission und die Menge der Dateien für die, die Berechtigungen gelten. In IPPermission gibt es einen eigenen Primärschlüssel mit einer option für zulassen oder verweigern für das Schreiben, lesen, erstellen oder löschen von Dateien. In den AccountPermissions gibt es eine eigene ID als Primärschlüssel mit den gleichen möglichkeiten wie in den IPPermissions für das bearbeiten der Dateien. In den Tabellen IPPermissions und Accountpermissions gibt es FileGroup als Fremdschlüssel. In FileGroup ist hinterlegt für welche menge der Dateien die Berechtigungen gelten. 
+In Datei Berechtigungen werden drei Tabellen hinterlegt, die Berechtigungen welche einer adresse und dessen Netzwerk zugeteilt sind in der IPPermission, den berechtigungen welche einem Account zugeteilt sind in der AccountPermission und die Menge der Dateien für die, die Berechtigungen gelten. In IPPermission gibt es einen eigenen Primärschlüssel mit einer option für zulassen oder verweigern für das Schreiben, lesen, erstellen oder löschen von Dateien. In den AccountPermissions gibt es eine eigene ID als Primärschlüssel mit den gleichen möglichkeiten wie in den IPPermissions für das bearbeiten der Dateien. In den Tabellen IPPermissions und Accountpermissions gibt es FileGroup als Fremdschlüssel. In FileGroup ist hinterlegt für welche menge der Dateien die Berechtigungen gelten.
 
-IPPermission(ID, TargetID, Read(Grant/Deny), Write(Grant/Deny), Create(Grant/Deny), Delete(Grant/Deny), IPV4, MaskV4, IpV6, MaskV6, FileGroup)
+IPPermission(ID, TargetID, Read(Grant/Deny), Write(Grant/Deny), Create(Grant/Deny), Delete(Grant/Deny), Priority, IPV4, MaskV4, IpV6, MaskV6, FileGroup)
 
 AccountPermission(ID, AccountID, TargetID, Read(True,False), Write(True,False), Create(True,False), Delete(True,False), FileGroup)
 
@@ -220,4 +229,4 @@ AccessLogRow(TimeStamp, AccountID, IPv4, IPv6, FileID, Operation)
 
 ### Performance Logs
 
-PerformanceLogRow(TimeStamp, InstanceID, Region, Status, SystemVersion, CPU%, RamGB, SystemStorageGB, FileStorageTB, NetworkUpload, NetworkDownload, CPUTemp, DiskTemp, EnvironmentTemp)
+PerformanceLogRow(TimeStamp, InstanceID, Status, CPU%, RamGB, SystemStorageGB, FileStorageTB, NetworkUpload, NetworkDownload, CPUTemp, DiskTemp, EnvironmentTemp)
