@@ -48,7 +48,7 @@ CREATE TABLE abo (
     start_date TIMESTAMP NOT NULL,
     end_date TIMESTAMP NOT NULL,
     auto_renew BOOLEAN NOT NULL DEFAULT FALSE,
-    payment_details_id UUID NOT NULL REFERENCES payment_details(id)
+    payment_details_id UUID REFERENCES payment_details(id)
 );
 
 CREATE TABLE payment_log_row (

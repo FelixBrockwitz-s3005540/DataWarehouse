@@ -75,9 +75,8 @@ run_sql_as() {
 
     print_info "$description..."
     echo "Running: $sql_file as $user"
-    psql -U "$user" -d "$db_name" -f "$sql_file"
 
-    if [ $? -eq 0 ]; then
+    if psql -U "$user" -d "$db_name" -f "$sql_file" -v ON_ERROR_STOP=1 > /dev/null; then
         print_info "Successfully completed: $description"
     else
         print_error "Failed to execute: $description"
@@ -107,9 +106,7 @@ drop_user "$USERNAME"
 print_info "=== Step 2: Creating database and schemas ==="
 
 print_info "Creating database, schemas, and user (this may take a moment)..."
-psql -U "$ADMIN_USER" -f "src/createDatabases.sql"
-
-if [ $? -eq 0 ]; then
+if psql -U "$ADMIN_USER" -f "src/createDatabases.sql" -v ON_ERROR_STOP=1 > /dev/null; then
     print_info "Successfully created database, schemas, and user."
 else
     print_error "Failed to create database, schemas, and user."
@@ -123,6 +120,17 @@ print_info "=== Step 3: Executing table definition scripts ==="
 run_sql "src/definitions/accounts_db.sql" "$DATAWAREHOUSE_DB" "Creating accounts tables"
 run_sql "src/definitions/service_db.sql" "$DATAWAREHOUSE_DB" "Creating service tables"
 run_sql "src/definitions/logs_db.sql" "$DATAWAREHOUSE_DB" "Creating logs tables"
+
+# Step 4: Populate example data
+print_info "=== Step 4: Populating example data ==="
+
+# Clear existing data and insert ~100 rows for each table (excluding logs)
+run_sql "src/data/00_accounts.sql" "$DATAWAREHOUSE_DB" "Clearing existing data and inserting example accounts"
+run_sql "src/data/01_password_generation.sql" "$DATAWAREHOUSE_DB" "Generating passwords procedurally"
+run_sql "src/data/02_abos_generation.sql" "$DATAWAREHOUSE_DB" "Generating ABOS for accounts"
+run_sql "src/data/03_payment_log_row.sql" "$DATAWAREHOUSE_DB" "Generating payment logs"
+
+print_info "=== Example data populated ==="
 
 print_info "=== Database has been successfully recreated ==="
 print_info "Summary:"
