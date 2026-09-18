@@ -27,11 +27,11 @@ DECLARE
     v_payment_details_id uuid;
     v_duration interval;
     v_duration_days int;
-    v_expired_target constant int := 10;
+    v_expired_target constant int := 50;
     v_expired_count int := 0;
     v_count int := 0;
 BEGIN
-    FOR v_account_id IN SELECT id FROM accounts.accounts ORDER BY id LIMIT 50
+    FOR v_account_id IN SELECT id FROM accounts.accounts ORDER BY id LIMIT 250
     LOOP
         -- Randomly choose a plan type
         v_plan := CASE (floor(random() * 9)::int)

@@ -12,13 +12,15 @@ DECLARE
     v_owner RECORD;
     v_file_ids uuid[];
     v_file_id uuid;
-    v_group_count int := 2;
+    v_group_count int := 4;
     v_group_types text[] := ARRAY['family', 'work', 'friends', 'public', 'archive', 'private'];
     v_picked_types text[];
     v_group_name varchar(100);
     v_group_id uuid;
     v_group_ids uuid[];
     g int;
+    v_g int;
+    v_g2 int;
 BEGIN
     -- Truncate dependent table first, then file_group
     TRUNCATE TABLE service.file_to_group CASCADE;
@@ -37,9 +39,11 @@ BEGIN
         CONTINUE WHEN v_file_ids IS NULL;
 
         -- Each owner gets 2 groups with distinct, random types
+        -- (unnest must be in FROM: in the target list all rows would share one
+        -- random() value and the shuffle would be a no-op)
         SELECT array_agg(t) INTO v_picked_types
         FROM (
-            SELECT unnest(v_group_types) AS t
+            SELECT t FROM unnest(v_group_types) AS t
             ORDER BY random()
             LIMIT v_group_count
         ) s;
@@ -69,19 +73,25 @@ BEGIN
             v_group_ids[g] := v_group_id;
         END LOOP;
 
-        -- Assign each of the owner's files to 1 or 2 of their groups
-        -- (explicitly attached files belong to the same owner as the group)
+        -- Assign each of the owner's files to 1 or 2 of their groups,
+        -- spread randomly across ALL groups (explicitly attached files
+        -- belong to the same owner as the group)
         FOR v_file_id IN SELECT unnest(v_file_ids) LOOP
-            -- Primary group (guarantees every file is in at least one group)
+            -- Primary group: random one of the owner's groups
+            v_g := 1 + floor(random() * v_group_count)::int;
             INSERT INTO service.file_to_group (file_id, group_id)
-            VALUES (v_file_id, v_group_ids[1])
+            VALUES (v_file_id, v_group_ids[v_g])
             ON CONFLICT (file_id, group_id) DO NOTHING;
 
-            -- 50% chance the file is also in the other group
+            -- 50% chance the file is also in a second, different group
             -- (a file can be in many groups)
             IF random() < 0.5 THEN
+                v_g2 := 1 + floor(random() * (v_group_count - 1))::int;
+                IF v_g2 >= v_g THEN
+                    v_g2 := v_g2 + 1;
+                END IF;
                 INSERT INTO service.file_to_group (file_id, group_id)
-                VALUES (v_file_id, v_group_ids[2])
+                VALUES (v_file_id, v_group_ids[v_g2])
                 ON CONFLICT (file_id, group_id) DO NOTHING;
             END IF;
         END LOOP;

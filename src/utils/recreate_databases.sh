@@ -126,6 +126,7 @@ print_info "=== Step 4: Populating example data ==="
 
 # Clear existing data and insert ~100 rows for each table (excluding logs)
 run_sql "src/data/00_accounts.sql" "$DATAWAREHOUSE_DB" "Clearing existing data and inserting example accounts"
+run_sql "src/data/00b_account_duplication.sql" "$DATAWAREHOUSE_DB" "Duplicating accounts 10x with numbered unique parts"
 run_sql "src/data/01_password_generation.sql" "$DATAWAREHOUSE_DB" "Generating passwords procedurally"
 run_sql "src/data/02_abos_generation.sql" "$DATAWAREHOUSE_DB" "Generating ABOS for accounts"
 run_sql "src/data/03_payment_log_row.sql" "$DATAWAREHOUSE_DB" "Generating payment logs"
@@ -134,7 +135,7 @@ run_sql "src/data/05_file_generation.sql" "$DATAWAREHOUSE_DB" "Generating ~100 s
 run_sql "src/data/06_file_group_generation.sql" "$DATAWAREHOUSE_DB" "Generating file groups for access permissions"
 run_sql "src/data/07_file_permission_generation.sql" "$DATAWAREHOUSE_DB" "Generating file permissions"
 run_sql "src/data/08_performance_log_generation.sql" "$DATAWAREHOUSE_DB" "Generating ~100,000 performance logs"
-run_sql "src/data/09_access_log_generation.sql" "$DATAWAREHOUSE_DB" "Generating ~10,000 access logs"
+run_sql "src/data/09_access_log_generation.sql" "$DATAWAREHOUSE_DB" "Generating ~20,000 access logs"
 
 print_info "=== Example data populated ==="
 

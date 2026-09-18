@@ -36,8 +36,8 @@ BEGIN
         JOIN accounts.payment_details pd ON pd.id = a.payment_details_id
         WHERE a.plan NOT IN ('Freeversion', 'Trialversion')
     LOOP
-        -- 15..40 monthly payments per paid accounts.abo -> ~1000 rows overall
-        v_n := 15 + floor(random() * 26)::int;
+        -- 30..80 monthly payments per paid accounts.abo -> ~10k rows overall
+        v_n := 30 + floor(random() * 51)::int;
         -- Random anchor day/hour of the month so payment dates differ per accounts.abo
         v_base_day := floor(random() * 26)::int;
         v_base_hour := floor(random() * 24)::int;

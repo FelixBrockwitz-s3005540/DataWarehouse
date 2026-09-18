@@ -32,8 +32,8 @@ BEGIN
         FROM accounts.accounts a
         WHERE EXISTS (SELECT 1 FROM accounts.abo WHERE abo.account_id = a.id)
     LOOP
-        -- Generate 2 files per account to get ~100 files (50 accounts * 2 = 100)
-        FOR i IN 1..2 LOOP
+        -- Generate 4 files per account to get ~1000 files (250 accounts * 4 = 1000)
+        FOR i IN 1..4 LOOP
             -- Pick a random instance
             SELECT id INTO v_instance_id
             FROM service.instance

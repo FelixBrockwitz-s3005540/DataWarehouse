@@ -9,7 +9,7 @@
 
 DO $$
 DECLARE
-    v_target int := 10000;
+    v_target int := 20000;
     v_rows int := 0;
     v_inserted int;
     v_file RECORD;
