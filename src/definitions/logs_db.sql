@@ -2,22 +2,21 @@
 -- Creates tables for the logs schema
 -- Can be run with: psql -U datawarehouse_user -d datawarehouse -f src/definitions/logs_db.sql
 
-SET search_path TO logs, service, accounts, public;
 
 BEGIN;
 
-CREATE TABLE access_log_row (
+CREATE TABLE logs.access_log_row (
     timestamp TIMESTAMP NOT NULL,
-    account_id UUID REFERENCES accounts(id),
+    account_id UUID REFERENCES accounts.accounts(id),
     ip_address INET,
-    file_id UUID NOT NULL REFERENCES file(id) ON DELETE CASCADE,
+    file_id UUID NOT NULL REFERENCES service.file(id) ON DELETE CASCADE,
     operation_type VARCHAR(100) NOT NULL,
     PRIMARY KEY(file_id, timestamp)
 );
 
-CREATE TABLE performance_log_row (
+CREATE TABLE logs.performance_log_row (
     timestamp TIMESTAMP NOT NULL,
-    instance_id VARCHAR(255) NOT NULL REFERENCES instance(id),
+    instance_id VARCHAR(255) NOT NULL REFERENCES service.instance(id),
     status VARCHAR(50) NOT NULL,
     cpu_percent FLOAT NOT NULL,
     ram_gb FLOAT NOT NULL,
