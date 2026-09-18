@@ -87,6 +87,12 @@ BEGIN
         END LOOP;
     END LOOP;
 
+    -- Same rule as the auto-cleanup trigger: a glob-less group with no files
+    -- can never match anything, so drop it right after generation
+    DELETE FROM service.file_group g
+    WHERE g.glob_pattern IS NULL
+      AND NOT EXISTS (SELECT 1 FROM service.file_to_group ftg WHERE ftg.group_id = g.id);
+
     RAISE NOTICE 'Generated % file-to-group memberships',
         (SELECT count(*) FROM service.file_to_group);
 END $$;

@@ -133,6 +133,8 @@ run_sql "src/data/04_instance.sql" "$DATAWAREHOUSE_DB" "Inserting 20 service ins
 run_sql "src/data/05_file_generation.sql" "$DATAWAREHOUSE_DB" "Generating ~100 service files"
 run_sql "src/data/06_file_group_generation.sql" "$DATAWAREHOUSE_DB" "Generating file groups for access permissions"
 run_sql "src/data/07_file_permission_generation.sql" "$DATAWAREHOUSE_DB" "Generating file permissions"
+run_sql "src/data/08_performance_log_generation.sql" "$DATAWAREHOUSE_DB" "Generating ~100,000 performance logs"
+run_sql "src/data/09_access_log_generation.sql" "$DATAWAREHOUSE_DB" "Generating ~10,000 access logs"
 
 print_info "=== Example data populated ==="
 

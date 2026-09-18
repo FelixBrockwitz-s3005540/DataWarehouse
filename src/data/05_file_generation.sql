@@ -107,5 +107,16 @@ BEGIN
         END LOOP;
     END LOOP;
 
-    RAISE NOTICE 'Generated % files', (SELECT count(*) FROM service.file);
+    -- Soft-delete ~5% of the generated files (real file gone, metadata stays):
+    -- path marker + size = 0, via service.delete_file()
+    PERFORM service.delete_file(v.id)
+    FROM (
+        SELECT id FROM service.file
+        ORDER BY random()
+        LIMIT GREATEST(1, (SELECT count(*) / 20 FROM service.file))
+    ) v;
+
+    RAISE NOTICE 'Generated % files (% soft-deleted)',
+        (SELECT count(*) FROM service.file),
+        (SELECT count(*) FROM service.file WHERE file_path LIKE '%~deleted~%');
 END $$;

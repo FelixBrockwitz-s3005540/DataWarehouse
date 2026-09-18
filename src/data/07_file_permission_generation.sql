@@ -35,7 +35,7 @@ BEGIN
                                 ((v_hash / 65536) % 256)::int || '.' ||
                                 ((v_hash / 16777216) % 256)::int || '/32';
             INSERT INTO service.ip_permission (read_permission, write_permission, create_permission, delete_permission, priority, ip_mask, group_id)
-            VALUES ('Grant', 'Grant', 'Grant', 'Grant', 1, v_residential_ip, rec.id);
+            VALUES ('Grant', 'Grant', 'Grant', 'Grant', 1, v_residential_ip::cidr, rec.id);
 
         ELSIF v_type = 'work' THEN
             -- Corporate IP derived from owner hash (unique per owner, /30)
@@ -45,12 +45,12 @@ BEGIN
                               ((v_hash / 65536) % 256)::int || '.' ||
                               ((floor((v_hash / 16777216) % 64) * 4)::int)::int || '/30';
             INSERT INTO service.ip_permission (read_permission, write_permission, create_permission, delete_permission, priority, ip_mask, group_id)
-            VALUES ('Grant', 'Grant', 'Grant', 'Grant', 1, v_corporate_ip, rec.id);
+            VALUES ('Grant', 'Grant', 'Grant', 'Grant', 1, v_corporate_ip::cidr, rec.id);
 
         ELSIF v_type = 'friends' THEN
             -- A few accounts: read + edit (Grant read/write, deny create/delete)
-            INSERT INTO service.account_permission (target_id, account_id, read_permission, write_permission, create_permission, delete_permission, group_id)
-            SELECT a.id, a.id, TRUE, TRUE, FALSE, FALSE, rec.id
+            INSERT INTO service.account_permission (account_id, read_permission, write_permission, create_permission, delete_permission, group_id)
+            SELECT a.id, TRUE, TRUE, FALSE, FALSE, rec.id
             FROM accounts.accounts a
             ORDER BY random()
             LIMIT 3;

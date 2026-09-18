@@ -55,7 +55,7 @@ CREATE TABLE service.ip_permission (
     priority INTEGER NOT NULL,
     -- Fused: ipv4_address + v4_subnet_mask + ipv6_address + v6_subnet_mask → single cidr with embedded netmask
     ip_mask CIDR,
-    group_id UUID NOT NULL REFERENCES service.file_group(id),
+    group_id UUID NOT NULL REFERENCES service.file_group(id) ON DELETE CASCADE,
     UNIQUE(priority, group_id)
 );
 
@@ -66,7 +66,57 @@ CREATE TABLE service.account_permission (
     write_permission BOOLEAN NOT NULL DEFAULT FALSE,
     create_permission BOOLEAN NOT NULL DEFAULT FALSE,
     delete_permission BOOLEAN NOT NULL DEFAULT FALSE,
-    group_id UUID NOT NULL REFERENCES service.file_group(id)
+    group_id UUID NOT NULL REFERENCES service.file_group(id) ON DELETE CASCADE
 );
+
+-- Auto-cleanup: a glob-less group that lost its last file can never match
+-- anything again, so it is deleted automatically (permissions cascade with it).
+CREATE FUNCTION service.cleanup_empty_group() RETURNS TRIGGER AS $$
+BEGIN
+    DELETE FROM service.file_group g
+    WHERE g.id = OLD.group_id
+      AND g.glob_pattern IS NULL
+      AND NOT EXISTS (SELECT 1 FROM service.file_to_group ftg WHERE ftg.group_id = OLD.group_id);
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_file_to_group_cleanup
+AFTER DELETE ON service.file_to_group
+FOR EACH ROW EXECUTE FUNCTION service.cleanup_empty_group();
+
+-- Soft delete convention for files: only the real file on the instance is
+-- removed; the metadata wrapper stays forever (access logs must keep
+-- referencing it). A DELETE on service.file is intercepted by a BEFORE DELETE
+-- trigger: the path gets a marker (unique per file id) so the freed path can
+-- be reused under UNIQUE(owner_account_id, file_path), size is zeroed and the
+-- file is evicted from all groups it belonged to. The actual row deletion is
+-- always cancelled (RETURN NULL) - wrappers are never hard-deleted.
+CREATE FUNCTION service.soft_delete_file() RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE service.file
+    SET file_path = left(OLD.file_path, 255 - 17) || '~deleted~' || left(OLD.id::text, 8),
+        size = 0,
+        modified_at = CURRENT_TIMESTAMP
+    WHERE id = OLD.id
+      AND file_path NOT LIKE '%~deleted~%';
+
+    DELETE FROM service.file_to_group WHERE file_id = OLD.id;
+
+    -- Cancel the delete: the metadata wrapper stays in place
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_file_soft_delete
+BEFORE DELETE ON service.file
+FOR EACH ROW EXECUTE FUNCTION service.soft_delete_file();
+
+-- Convenience wrapper: issues a DELETE, which the trigger turns into a soft delete
+CREATE FUNCTION service.delete_file(p_file_id UUID) RETURNS VOID AS $$
+BEGIN
+    DELETE FROM service.file WHERE id = p_file_id;
+END;
+$$ LANGUAGE plpgsql;
 
 COMMIT;
