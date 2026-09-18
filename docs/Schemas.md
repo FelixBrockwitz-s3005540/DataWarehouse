@@ -87,7 +87,6 @@ erDiagram
     
     IPPermission {
         ID uuid PK
-        TargetID uuid FK
         Read string
         Write string
         Create string
@@ -101,7 +100,6 @@ erDiagram
     
     AccountPermission {
         ID uuid PK
-        TargetID uuid FK
         AccountID uuid FK
         Read bool
         Write bool
@@ -110,9 +108,15 @@ erDiagram
     }
     
     FileGroup {
-        RelationID uuid PK
-        FileID uuid FK
-        GroupName string
+        ID uuid PK
+        Name string
+        OwnerAccountID uuid FK
+        GlobPattern string
+    }
+
+    FileToGroup {
+        FileID uuid FK, PK
+        GroupID uuid FK, PK
     }
 
     %% Logs DB
@@ -150,12 +154,12 @@ erDiagram
     %% Service DB
     Instance ||--o{ File : stored-on
     Accounts ||--o{ File : owns
-    File }o--o{ FileGroup : belongs-to
-    Accounts ||--o{ AccountPermission : has-permission
-    Accounts ||--o{ AccountPermission : for-storage
+    File ||--o{ FileToGroup : "belongs-to via"
+    FileGroup ||--o{ FileToGroup : "belongs-to via"
+    FileGroup }o--|| Accounts : defines
     AccountPermission |o--o{ FileGroup : for-files
     IPPermission |o--o{ FileGroup : for-files
-    Accounts ||--o{ IPPermission : for-storage
+    Accounts ||--o{ AccountPermission : has-permission
     %% Logs DB
     Instance ||--o{ PerformanceLogRow : has-logs
     Accounts ||--o{ AccessLogRow : by-user
@@ -217,11 +221,13 @@ File(ID, InstanceID, OwnerAccountID, FileName, FilePath, Size, Created, Modified
 
 In Datei Berechtigungen werden drei Tabellen hinterlegt, die Berechtigungen welche einer adresse und dessen Netzwerk zugeteilt sind in der IPPermission, den berechtigungen welche einem Account zugeteilt sind in der AccountPermission und die Menge der Dateien für die, die Berechtigungen gelten. In IPPermission gibt es einen eigenen Primärschlüssel mit einer option für zulassen oder verweigern für das Schreiben, lesen, erstellen oder löschen von Dateien. In den AccountPermissions gibt es eine eigene ID als Primärschlüssel mit den gleichen möglichkeiten wie in den IPPermissions für das bearbeiten der Dateien. In den Tabellen IPPermissions und Accountpermissions gibt es FileGroup als Fremdschlüssel. In FileGroup ist hinterlegt für welche menge der Dateien die Berechtigungen gelten.
 
-IPPermission(ID, TargetID, Read(Grant/Deny), Write(Grant/Deny), Create(Grant/Deny), Delete(Grant/Deny), Priority, IPV4, MaskV4, IpV6, MaskV6, FileGroup)
+IPPermission(ID, Read(Grant/Deny), Write(Grant/Deny), Create(Grant/Deny), Delete(Grant/Deny), Priority, IPV4, MaskV4, IpV6, MaskV6, FileGroup)
 
-AccountPermission(ID, AccountID, TargetID, Read(True,False), Write(True,False), Create(True,False), Delete(True,False), FileGroup)
+AccountPermission(ID, AccountID, Read(True,False), Write(True,False), Create(True,False), Delete(True,False), FileGroup)
 
-FileGroup(RelationID, GroupName, FileID)
+FileToGroup(GroupID, FileID)
+
+FileGroup(ID, Name, OwnerAccountID, GlobPattern)
 
 ## Logs DB
 

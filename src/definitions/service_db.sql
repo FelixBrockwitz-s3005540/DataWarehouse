@@ -29,19 +29,26 @@ CREATE TABLE file (
     modified_at TIMESTAMP NOT NULL,
     last_download_at TIMESTAMP,
     created_by VARCHAR(255) NOT NULL,
-    modified_by VARCHAR(255) NOT NULL
+    modified_by VARCHAR(255) NOT NULL,
+    UNIQUE(owner_account_id, file_path)
 );
 
 CREATE TABLE file_group (
-    relation_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(100) NOT NULL,
+    owner_account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    glob_pattern VARCHAR(100),
+    UNIQUE(name, owner_account_id)
+);
+
+CREATE TABLE file_to_group (
     file_id UUID NOT NULL REFERENCES file(id) ON DELETE CASCADE,
-    group_name VARCHAR(100) NOT NULL,
-    UNIQUE(file_id, group_name)
+    group_id UUID NOT NULL REFERENCES file_group(id) ON DELETE CASCADE,
+    PRIMARY KEY (file_id, group_id)
 );
 
 CREATE TABLE ip_permission (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    target_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
     read_permission VARCHAR(10) NOT NULL CHECK (read_permission IN ('Grant', 'Deny')),
     write_permission VARCHAR(10) NOT NULL CHECK (write_permission IN ('Grant', 'Deny')),
     create_permission VARCHAR(10) NOT NULL CHECK (create_permission IN ('Grant', 'Deny')),
@@ -49,18 +56,18 @@ CREATE TABLE ip_permission (
     priority INTEGER NOT NULL,
     -- Fused: ipv4_address + v4_subnet_mask + ipv6_address + v6_subnet_mask → single cidr with embedded netmask
     ip_mask CIDR,
-    UNIQUE(priority, target_id)
+    group_id UUID NOT NULL REFERENCES file_group(id),
+    UNIQUE(priority, group_id)
 );
 
 CREATE TABLE account_permission (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    target_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
     account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
     read_permission BOOLEAN NOT NULL DEFAULT FALSE,
     write_permission BOOLEAN NOT NULL DEFAULT FALSE,
     create_permission BOOLEAN NOT NULL DEFAULT FALSE,
     delete_permission BOOLEAN NOT NULL DEFAULT FALSE,
-    file_group_id UUID REFERENCES file_group(relation_id)
+    group_id UUID NOT NULL REFERENCES file_group(id)
 );
 
 COMMIT;

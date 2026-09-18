@@ -2,14 +2,12 @@
 -- Creates tables for the accounts schema
 -- Can be run with: psql -U datawarehouse_user -d datawarehouse -f src/definitions/accounts_db.sql
 
-SET search_path TO accounts, public;
-
 BEGIN;
 
 -- Enum type for subscription plans (see @docs/Lizenzmodelle.txt)
-CREATE TYPE plan_type AS ENUM ('Freeversion', 'Trialversion', 'Standard Private', 'Standard Group', 'Premium', 'Standard Enterprise', 'Premium Enterprise', 'Standard Authority', 'Premium Authority');
+CREATE TYPE accounts.plan_type AS ENUM ('Freeversion', 'Trialversion', 'Standard Private', 'Standard Group', 'Premium', 'Standard Enterprise', 'Premium Enterprise', 'Standard Authority', 'Premium Authority');
 
-CREATE TABLE accounts (
+CREATE TABLE accounts.accounts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_name VARCHAR(255) UNIQUE NOT NULL,
     first_name VARCHAR(255),
@@ -26,13 +24,13 @@ CREATE TABLE accounts (
     agb_version VARCHAR(50)
 );
 
-CREATE TABLE password (
-    account_id UUID PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+CREATE TABLE accounts.password (
+    account_id UUID PRIMARY KEY REFERENCES accounts.accounts(id) ON DELETE CASCADE,
     hash BYTEA NOT NULL,
     salt BYTEA NOT NULL
 );
 
-CREATE TABLE payment_details (
+CREATE TABLE accounts.payment_details (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     method VARCHAR(100) NOT NULL,
     amount DECIMAL(20, 2) NOT NULL,
@@ -41,20 +39,20 @@ CREATE TABLE payment_details (
     transaction_reference VARCHAR(255) UNIQUE NOT NULL
 );
 
-CREATE TABLE abo (
+CREATE TABLE accounts.abo (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-    plan plan_type NOT NULL,
+    account_id UUID NOT NULL REFERENCES accounts.accounts(id) ON DELETE CASCADE,
+    plan accounts.plan_type NOT NULL,
     start_date TIMESTAMP NOT NULL,
     end_date TIMESTAMP NOT NULL,
     auto_renew BOOLEAN NOT NULL DEFAULT FALSE,
-    payment_details_id UUID REFERENCES payment_details(id)
+    payment_details_id UUID REFERENCES accounts.payment_details(id)
 );
 
-CREATE TABLE payment_log_row (
+CREATE TABLE accounts.payment_log_row (
     timestamp TIMESTAMP PRIMARY KEY,
-    abo_id UUID NOT NULL REFERENCES abo(id) ON DELETE CASCADE,
-    payment_details_id UUID NOT NULL REFERENCES payment_details(id),
+    abo_id UUID NOT NULL REFERENCES accounts.abo(id) ON DELETE CASCADE,
+    payment_details_id UUID NOT NULL REFERENCES accounts.payment_details(id),
     amount DECIMAL(20, 2) NOT NULL,
     was_auto_renew BOOLEAN NOT NULL DEFAULT FALSE,
     confirmation_email_id VARCHAR(255) NOT NULL,

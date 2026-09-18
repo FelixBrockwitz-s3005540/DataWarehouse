@@ -129,6 +129,10 @@ run_sql "src/data/00_accounts.sql" "$DATAWAREHOUSE_DB" "Clearing existing data a
 run_sql "src/data/01_password_generation.sql" "$DATAWAREHOUSE_DB" "Generating passwords procedurally"
 run_sql "src/data/02_abos_generation.sql" "$DATAWAREHOUSE_DB" "Generating ABOS for accounts"
 run_sql "src/data/03_payment_log_row.sql" "$DATAWAREHOUSE_DB" "Generating payment logs"
+run_sql "src/data/04_instance.sql" "$DATAWAREHOUSE_DB" "Inserting 20 service instances"
+run_sql "src/data/05_file_generation.sql" "$DATAWAREHOUSE_DB" "Generating ~100 service files"
+run_sql "src/data/06_file_group_generation.sql" "$DATAWAREHOUSE_DB" "Generating file groups for access permissions"
+run_sql "src/data/07_file_permission_generation.sql" "$DATAWAREHOUSE_DB" "Generating file permissions"
 
 print_info "=== Example data populated ==="
 

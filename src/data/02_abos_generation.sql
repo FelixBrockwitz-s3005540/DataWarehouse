@@ -13,15 +13,14 @@
 --       Premium Authority  3 Jahre
 --       Freeversion        unbegrenzt
 --   - Free/Trial plans have NO payment details attached (NULL)
---   - Paid plans each get their OWN fresh payment_details row (never reused)
+--   - Paid plans each get their OWN fresh accounts.payment_details row (never reused)
 --   - Trial (and Free) plans never auto-renew
 
-SET search_path TO accounts, public;
 
 DO $$
 DECLARE
     v_account_id uuid;
-    v_plan plan_type;
+    v_plan accounts.plan_type;
     v_start_date timestamp;
     v_end_date timestamp;
     v_auto_renew boolean;
@@ -32,19 +31,19 @@ DECLARE
     v_expired_count int := 0;
     v_count int := 0;
 BEGIN
-    FOR v_account_id IN SELECT id FROM accounts ORDER BY id LIMIT 50
+    FOR v_account_id IN SELECT id FROM accounts.accounts ORDER BY id LIMIT 50
     LOOP
         -- Randomly choose a plan type
         v_plan := CASE (floor(random() * 9)::int)
-            WHEN 0 THEN 'Freeversion'::plan_type
-            WHEN 1 THEN 'Trialversion'::plan_type
-            WHEN 2 THEN 'Standard Private'::plan_type
-            WHEN 3 THEN 'Standard Group'::plan_type
-            WHEN 4 THEN 'Premium'::plan_type
-            WHEN 5 THEN 'Standard Enterprise'::plan_type
-            WHEN 6 THEN 'Premium Enterprise'::plan_type
-            WHEN 7 THEN 'Standard Authority'::plan_type
-            WHEN 8 THEN 'Premium Authority'::plan_type
+            WHEN 0 THEN 'Freeversion'::accounts.plan_type
+            WHEN 1 THEN 'Trialversion'::accounts.plan_type
+            WHEN 2 THEN 'Standard Private'::accounts.plan_type
+            WHEN 3 THEN 'Standard Group'::accounts.plan_type
+            WHEN 4 THEN 'Premium'::accounts.plan_type
+            WHEN 5 THEN 'Standard Enterprise'::accounts.plan_type
+            WHEN 6 THEN 'Premium Enterprise'::accounts.plan_type
+            WHEN 7 THEN 'Standard Authority'::accounts.plan_type
+            WHEN 8 THEN 'Premium Authority'::accounts.plan_type
         END;
 
         -- Plan duration exactly to spec
@@ -82,7 +81,7 @@ BEGIN
         END IF;
 
         IF v_plan = 'Trialversion' THEN
-            UPDATE accounts
+            UPDATE accounts.accounts
             SET
                 trial_used = TRUE
             WHERE
@@ -90,11 +89,11 @@ BEGIN
         END IF;
 
         -- Payment details: only paid plans get one, and each gets a FRESH row
-        -- (inserted here), so no payment_details is ever reused.
+        -- (inserted here), so no accounts.payment_details is ever reused.
         IF v_plan IN ('Freeversion', 'Trialversion') THEN
             v_payment_details_id := NULL;
         ELSE
-            INSERT INTO payment_details (method, amount, currency, status, transaction_reference)
+            INSERT INTO accounts.payment_details (method, amount, currency, status, transaction_reference)
             VALUES (
                 (ARRAY['credit_card', 'paypal', 'sepa_debit', 'invoice'])[floor(random() * 4)::int + 1],
                 CASE v_plan
@@ -119,7 +118,7 @@ BEGIN
                         AND v_plan <> 'Trialversion'
                         AND (random() < 0.5);
 
-        INSERT INTO abo (account_id, plan, start_date, end_date, auto_renew, payment_details_id)
+        INSERT INTO accounts.abo (account_id, plan, start_date, end_date, auto_renew, payment_details_id)
         VALUES (v_account_id, v_plan, v_start_date, v_end_date, v_auto_renew, v_payment_details_id);
 
         v_count := v_count + 1;
@@ -127,5 +126,5 @@ BEGIN
 
     RAISE NOTICE 'Generated % ABOS (% expired, % active, % without payment details)',
         v_count, v_expired_count, v_count - v_expired_count,
-        (SELECT count(*) FROM abo WHERE payment_details_id IS NULL);
+        (SELECT count(*) FROM accounts.abo WHERE payment_details_id IS NULL);
 END $$;

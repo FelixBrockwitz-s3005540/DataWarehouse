@@ -6,20 +6,19 @@
 -- Clean up existing data in all accounts schema tables
 -- ============================================================
 
-SET search_path TO accounts, public;
 
 -- Truncate all tables in the accounts schema (CASCADE handles FK dependencies)
-TRUNCATE TABLE accounts      RESTART IDENTITY CASCADE;
-TRUNCATE TABLE password      RESTART IDENTITY CASCADE;
-TRUNCATE TABLE payment_details RESTART IDENTITY CASCADE;
-TRUNCATE TABLE abo           RESTART IDENTITY CASCADE;
-TRUNCATE TABLE payment_log_row RESTART IDENTITY CASCADE;
+TRUNCATE TABLE accounts.accounts      RESTART IDENTITY CASCADE;
+TRUNCATE TABLE accounts.password      RESTART IDENTITY CASCADE;
+TRUNCATE TABLE accounts.payment_details RESTART IDENTITY CASCADE;
+TRUNCATE TABLE accounts.abo           RESTART IDENTITY CASCADE;
+TRUNCATE TABLE accounts.payment_log_row RESTART IDENTITY CASCADE;
 
 -- ============================================================
 -- Table: accounts (~100 rows)
 -- ============================================================
 
-INSERT INTO accounts
+INSERT INTO accounts.accounts
     (user_name, first_name, last_name, email, phone, country, city, postal_code, street, house_number, house_number_suffix, trial_used, agb_version)
 VALUES
     ('John Doe', 'John', 'Doe', 'john.doe@example.com', '+49 1710123456', 'DE', 'Berlin', '10115', 'Musternstrasse', '123', 'A', TRUE, '20240101'),
